@@ -1,7 +1,12 @@
 '''
 Created on Oct 22, 2026
-Artificial Neural Network (ANN) using linear combiners, ReLU activation functions, and Cross Entropy loss function
-Classify four categories each having ten properties uniformly distributed in regions of (0,256]
+Artificial Neural Network (ANN) using linear combiners, ReLU activation functions, and Cross Entropy loss function.
+Otherwise known as a multi-layer perceptron (MLP) using back-propagation of errors to train the weights and biases.
+The task is to classify four categories (classes), each having ten properties uniformly distributed in regions of (0,256].
+Display the learning curve and the distribution of the properties for each class.  Test the trained ANN with a separate
+set of samples and tabulate the results.
+
+The PyTorch framework was used to build the ANN.
 
 @author: Tom Teplick
 '''
@@ -18,11 +23,6 @@ nproperties = 10
 
 # hidden layer width
 layerWidth = 15
-# learning rate
-learnintRate = .001
-
-# momentum
-momentum = 0.9
 
 # Define model
 class NeuralNetwork(nn.Module):
@@ -52,7 +52,7 @@ class NeuralNetwork(nn.Module):
                 input_data[samp][prop] = torch.randint(propbegin[cls.item()][prop], 
                     propend[cls.item()][prop], (1,1), dtype=torch.uint8).item()
     
-    def train(self, dataloader, loss_fn, optimizer):
+    def train_(self, dataloader, loss_fn, optimizer):
         self.train()
         for batch, (X, y) in enumerate(dataloader):
             X, y = X.to(device), y.to(device)
@@ -95,30 +95,88 @@ class NeuralNetwork(nn.Module):
         print('=' * 32)
         print("{0:8s}{1:8d}{2:8d}{3:8d}".format("Totals", ttlCount, ttlCorrect, ttlCorrect*100//ttlCount))
         
-    def  plotClassDistribution(self):
+    def  plotClassDistribution(self, propbegin, propend, maxProp):
         # plot the ranges of the class properties which are regions in (0, 255)
-        # x-axis is a unitless number running from 0 to 10*prop-space + 4*(class-space+class+class-width) + property-space
+        # x-axis is a unitless number running from 0 to 10*prop-space + 4*(class-space+class-width) + property-space
         # y-axis is an integer running from 0 to 255
         # loop over 10 properties
         #   skip property space
         #   loop over 4 property ranges with space in-between each property range
-        # skip property space
-        # set x-labels, y-labels, x-axis, y-axis, title, xticks, classSpace, propSpace
-        pass
+        # set x-label, y-label, title, xticks, classSpace, propSpace, legend, line colors, line width
+        # show figure
+        
+        # x-axis spacing between items: classes and properties
+        classSpace = 2
+        propSpace = nclasses*classSpace
+        # line colors
+        clr = np.array(['red', 'green', 'blue', 'yellow'])
+        # line properties: width, style
+        lnwid = 3
+        lnsty = "solid"
+        lbl = np.array(['class1', 'class2', 'class3', 'class4'])
+        # x,y coordinates arrays to be scaled and sliced
+        xcoord = np.ones(maxProp, dtype=np.uint8)
+        ycoord = np.arange(maxProp, dtype=np.uint8)
+        xtick = np.zeros(nproperties)
+                
+        x = 0
+        _, ax = plt.subplots(1,1)
+        # loop over the properties
+        for prop in range(nproperties):
+            x += propSpace
+            # loop over the classes
+            for cls in range(nclasses):
+                # property y length
+                ln = propend[cls][prop] - propbegin[cls][prop]
+                ax.plot(x*xcoord[:ln], ycoord[propbegin[cls][prop]:propend[cls][prop]], label=lbl[cls],
+                        color=clr[cls], linewidth=lnwid, linestyle=lnsty)
+                # put the property value at this x coordinate
+                if cls == nclasses//2:
+                    xtick[prop] = x
+                x += classSpace
+        ax.legend()
+        ax.set_xlabel('Class Properties')
+        ax.set_ylabel('Property Values')
+        ax.set_title('Property Distribution')
+        # custom x-ticks for properties
+        ax.set_xticks(np.arange(nproperties)+1, xtick)
+        plt.show(block=True)  
+                
+    def plotLearningCurve(self, maxProp):
+        # show cross entropy loss per epoch from training the MLP
+        _, ax = plt.subplots(1,1)
+        x = np.arange(self.loss.size(0))
+        y = self.loss.numpy()
+        # line properties: width, style
+        lnwid = 3
+        lnsty = "solid"
+        ax.plot(x, y, linewidth=lnwid, linestyle=lnsty)        
+        ax.set_xlabel('Epoch')
+        ax.set_ylabel('Cross Entropy Loss')
+        ax.set_title('Learning Curve')
+        plt.show(block=True)          
                               
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
 print(f"Using {device} device")
             
 def runLinearReluCrossEntropy():
     
-    parser = argparse.ArgumentParser(prog='linear_relu_crossentry', description="neural network for classification using PyTorch")
-    parser.add_argument('epochs', type=int, choices=[0,1,2,3])
-    parser.add_argument('batch_size', type=int, choices=[0,1,2])
-    parser.add_argument('learning_rate', type=float, choices=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25])
+    parser = argparse.ArgumentParser(prog='linear_relu_crossentry', description="MLP neural network (ReLU, Cross Entropy Loss) for classification using PyTorch")
+    parser.add_argument('epochs', type=int, choices=[10, 20, 50, 100, 200, 500, 1000])
+    parser.add_argument('batch_size', type=int, choices=[1, 2, 10, 32, 64])
+    parser.add_argument('learning_rate', type=float, choices=[.001, .002, .01, .02])
+    parser.add_argument('momentum', type=float, choices=[.5, .6, .7, .8, .9])
     args = parser.parse_args()
 
-    epochs = 20
-    batch_size = 1
+    # each epoch consists of batch_size samples which consists of (input,target)
+    epochs = args.epochs  #args.epochs
+    # number of samples consisting of (input,target)
+    batch_size = args.batch_size #args.batch_size
+    # learning rate to scale the backpropagation error
+    learning_rate = args.learning_rate #args.learning_rate
+    # momentum
+    momentum = args.momentum
+
     maxProp = 256
     maxBegin = maxProp//2
     nsamples = epochs*batch_size
@@ -147,22 +205,23 @@ def runLinearReluCrossEntropy():
     
     # Display the class distributions in a thread
     print("Display the class distributions in a separate window")
-    t = Thread(target=model.plotClassDistribution)
+    t = Thread(target=model.plotClassDistribution, args=[propbegin, propend, maxProp])
     t.run()
        
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=learnintRate, momentum=momentum)
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
             
     print("Begin training with the model.")
     for t in range(epochs):
         print("*", end='')
-        model.train(dataloader, loss_fn, optimizer)
+        model.train_(dataloader, loss_fn, optimizer)
         if (t+1) % 50 == 0:
             print("\n")
     print("Done training")
 
     # Display Cross Entropy Loss using matplotlib in a thread
     print("Display the Cross Entropy in a separate window")
+    t = Thread(target=model.plotLearningCurve)
     
     torch.save(model.state_dict(), linearReLUcrossEntropyModel)
     print("Saved PyTorch Model State to %s" % linearReLUcrossEntropyModel)
