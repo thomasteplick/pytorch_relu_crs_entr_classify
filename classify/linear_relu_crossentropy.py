@@ -16,7 +16,7 @@ import torch.utils.data as data
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
-from threading import Thread
+import time
 
 nclasses = 4
 nproperties = 10
@@ -52,14 +52,14 @@ class NeuralNetwork(nn.Module):
                 input_data[samp][prop] = torch.randint(propbegin[cls.item()][prop], 
                     propend[cls.item()][prop], (1,1), dtype=torch.uint8).item()
     
-    def train_(self, dataloader, loss_fn, optimizer):
+    def train_(self, dataloader, loss_fn, optimizer, device):
         self.train()
         for batch, (X, y) in enumerate(dataloader):
             X, y = X.to(device), y.to(device)
     
             # Compute prediction error
             pred = self.forward(X)
-            loss = loss_fn(pred, y)
+            loss = loss_fn(pred, y.squeeze(1))
     
             # Backpropagation
             loss.backward()
@@ -68,32 +68,41 @@ class NeuralNetwork(nn.Module):
             # save the loss for learning curve display
             self.loss[batch] = loss.item()
             
-    def test(self, dataloader):
+    def test(self, dataloader, device):
         self.eval()
         with torch.no_grad():
             for X, y in dataloader:
+                #print(f"outer={outer}, X={X}, y={y}")
                 X, y = X.to(device), y.to(device)
                 pred = self.forward(X)
+                #print(f"\npred={pred}")
+                #print(f"\ny={y}, size={y.size()}")
                 # loop over y tensor and determine if pred[i].argmax() is equal,
                 # count the number of samples for each class
                 for i,target in enumerate(y):
-                    self.count[target] += 1
+                    #print(f"i={i}, target={target}")
+                    self.count[target.item()] += 1
                     if pred[i].argmax() == target :
-                        self.correct[target] += 1
+                        self.correct[target.item()] += 1
                         
     def displayTestResults(self):
                
         # show classes, count, correct, %correct, totals
         # heading
-        ttlCorrect, ttlCount = 0,0
-        print("{0:8s}{1:8s}{2:8s}{3:8s}".format("Class", "Count", "Correct", "%"))
-        print('-' * 32)
+        ttlCorrect = 0
+        ttlCount = 0
+        sep = 8
+        horzBorder = '|' + '-'*sep + '|' + '-'*sep + '|' + '-'*sep + '|' + '-'*sep + '|'
+        print(horzBorder)
+        print("|{0:8s}|{1:8s}|{2:8s}|{3:8s}|".format("Class", "Count", "Correct", "%Correct"))
+        print(horzBorder)
         for i, val in enumerate(self.count):
-            print("{0:<8d}{1:<8d}{2:<8d}{3:8d}".format(i+1, val, self.correct[i], self.correct[i]*100//val))
+            print("|{0:<8d}|{1:<8d}|{2:<8d}|{3:<8d}|".format(i+1, val, self.correct[i], self.correct[i]*100//val))
+            print(horzBorder)
             ttlCount += val
-            ttlCorrect += self.correct
-        print('=' * 32)
-        print("{0:8s}{1:8d}{2:8d}{3:8d}".format("Totals", ttlCount, ttlCorrect, ttlCorrect*100//ttlCount))
+            ttlCorrect += self.correct[i]
+        print("|{0:<8s}|{1:<8d}|{2:<8d}|{3:<8d}|".format("Totals", ttlCount, ttlCorrect, ttlCorrect*100//ttlCount))
+        print(horzBorder)
         
     def  plotClassDistribution(self, propbegin, propend, maxProp):
         # plot the ranges of the class properties which are regions in (0, 255)
@@ -109,7 +118,7 @@ class NeuralNetwork(nn.Module):
         classSpace = 2
         propSpace = nclasses*classSpace
         # line colors
-        clr = np.array(['red', 'green', 'blue', 'yellow'])
+        clr = np.array(['red', 'green', 'blue', 'orange'])
         # line properties: width, style
         lnwid = 3
         lnsty = "solid"
@@ -117,7 +126,7 @@ class NeuralNetwork(nn.Module):
         # x,y coordinates arrays to be scaled and sliced
         xcoord = np.ones(maxProp, dtype=np.uint8)
         ycoord = np.arange(maxProp, dtype=np.uint8)
-        xtick = np.zeros(nproperties)
+        xtick = np.zeros(nproperties, dtype=np.uint8)
                 
         x = 0
         _, ax = plt.subplots(1,1)
@@ -128,8 +137,12 @@ class NeuralNetwork(nn.Module):
             for cls in range(nclasses):
                 # property y length
                 ln = propend[cls][prop] - propbegin[cls][prop]
-                ax.plot(x*xcoord[:ln], ycoord[propbegin[cls][prop]:propend[cls][prop]], label=lbl[cls],
-                        color=clr[cls], linewidth=lnwid, linestyle=lnsty)
+                if prop == 0:
+                    ax.plot(x*xcoord[:ln], ycoord[propbegin[cls][prop]:propend[cls][prop]], label=lbl[cls],
+                            color=clr[cls], linewidth=lnwid, linestyle=lnsty)
+                else:
+                    ax.plot(x*xcoord[:ln], ycoord[propbegin[cls][prop]:propend[cls][prop]],
+                            color=clr[cls], linewidth=lnwid, linestyle=lnsty)                    
                 # put the property value at this x coordinate
                 if cls == nclasses//2:
                     xtick[prop] = x
@@ -139,13 +152,13 @@ class NeuralNetwork(nn.Module):
         ax.set_ylabel('Property Values')
         ax.set_title('Property Distribution')
         # custom x-ticks for properties
-        ax.set_xticks(np.arange(nproperties)+1, xtick)
+        ax.set_xticks(xtick, np.arange(nproperties)+1)
         plt.show(block=True)  
                 
-    def plotLearningCurve(self, maxProp):
+    def plotLearningCurve(self):
         # show cross entropy loss per epoch from training the MLP
         _, ax = plt.subplots(1,1)
-        x = np.arange(self.loss.size(0))
+        x = np.arange(self.loss.size(0), dtype=np.uint32)
         y = self.loss.numpy()
         # line properties: width, style
         lnwid = 3
@@ -155,10 +168,7 @@ class NeuralNetwork(nn.Module):
         ax.set_ylabel('Cross Entropy Loss')
         ax.set_title('Learning Curve')
         plt.show(block=True)          
-                              
-device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
-print(f"Using {device} device")
-            
+                                          
 def runLinearReluCrossEntropy():
     
     parser = argparse.ArgumentParser(prog='linear_relu_crossentry', description="MLP neural network (ReLU, Cross Entropy Loss) for classification using PyTorch")
@@ -167,7 +177,13 @@ def runLinearReluCrossEntropy():
     parser.add_argument('learning_rate', type=float, choices=[.001, .002, .01, .02])
     parser.add_argument('momentum', type=float, choices=[.5, .6, .7, .8, .9])
     args = parser.parse_args()
-
+    
+    device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
+    print(f"Using {device} device")
+    
+    # seed the random number generator
+    torch.manual_seed(int(time.time()))
+    
     # each epoch consists of batch_size samples which consists of (input,target)
     epochs = args.epochs  #args.epochs
     # number of samples consisting of (input,target)
@@ -193,35 +209,36 @@ def runLinearReluCrossEntropy():
     
     # create the ANN
     model = NeuralNetwork(epochs).to(device)
-    print(model)    
+    print(f"Model: {model}")    
+    
+    # Train the model
     
     # create samples from the begin/end properties            
-    model.createSamples(nsamples, input_data, target, propbegin, propend)            
+    model.createSamples(nsamples, input_data, target, propbegin, propend)
         
     # Create dataset from sample tensors, normalize the input data to (0,1]
     dataset = data.TensorDataset(input_data/maxProp, target)
     # Create dataloader from dataset
     dataloader = data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
     
-    # Display the class distributions in a thread
-    print("Display the class distributions in a separate window")
-    t = Thread(target=model.plotClassDistribution, args=[propbegin, propend, maxProp])
-    t.run()
+    # Display the class distributions using matplotlib
+    print("Display the class distributions")
+    model.plotClassDistribution(propbegin, propend, maxProp)
        
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
             
-    print("Begin training with the model.")
+    print("Begin training the model.")
     for t in range(epochs):
         print("*", end='')
-        model.train_(dataloader, loss_fn, optimizer)
+        model.train_(dataloader, loss_fn, optimizer, device)
         if (t+1) % 50 == 0:
-            print("\n")
-    print("Done training")
+            print()
+    print("\nDone training")
 
-    # Display Cross Entropy Loss using matplotlib in a thread
-    print("Display the Cross Entropy in a separate window")
-    t = Thread(target=model.plotLearningCurve)
+    # Display Cross Entropy Loss using matplotlib
+    print("Display the Cross Entropy Loss")
+    model.plotLearningCurve()
     
     torch.save(model.state_dict(), linearReLUcrossEntropyModel)
     print("Saved PyTorch Model State to %s" % linearReLUcrossEntropyModel)
@@ -231,12 +248,13 @@ def runLinearReluCrossEntropy():
         for cls in range(nclasses):
             for prop in range(nproperties):
                 print(f"{propbegin[cls][prop]} {propend[cls][prop]} ", file=fout, end='')
-            print('\n', file=fout)
-        
+            print(file=fout)
+            
     # Test the model using different samples
     
     # create samples from the begin/end properties            
-    model.createSamples(nsamples, input_data, target, propbegin, propend)            
+    model.createSamples(nsamples, input_data, target, propbegin, propend)
+                
     # Create dataset from sample tensors, normalize the input data to (0,1]
     dataset = data.TensorDataset(input_data/maxProp, target)
     # Create dataloader from dataset
@@ -244,10 +262,10 @@ def runLinearReluCrossEntropy():
     print("Begin testing the model")
     for t in range(epochs):
         print("*", end='')
-        model.test(dataloader)
+        model.test(dataloader, device)
         if (t+1) % 50 == 0:
-            print("\n")
-    print("Done testing")
+            print()
+    print("\nDone testing.  Test results:")
         
     # Tabulate and display the test results: class, count, correct, %correct, totals
     model.displayTestResults()
