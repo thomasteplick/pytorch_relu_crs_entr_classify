@@ -17,28 +17,43 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import time
+import os.path
+from datetime import datetime
 
 nclasses = 4
 nproperties = 10
 
-# hidden layer width
-layerWidth = 15
-
-# Define model
+# Define ANN model
 class NeuralNetwork(nn.Module):
-    def __init__(self, epochs):
+    def __init__(self, epochs, hidden_layers, features):
         super().__init__()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(nproperties, layerWidth),
-            nn.ReLU(),
-            nn.Linear(layerWidth, layerWidth),
-            nn.ReLU(),
-            nn.Linear(layerWidth, nclasses)
-        )
+        self.linear_relu_stack = None
+        if hidden_layers == 1:
+            self.linear_relu_stack = nn.Sequential(
+                nn.Linear(nproperties, features),
+                nn.ReLU(),
+                nn.Linear(features, nclasses)               
+        elif hidden_layers == 2:
+            self.linear_relu_stack = nn.Sequential(
+                nn.Linear(nproperties, features),
+                nn.ReLU(),
+                nn.Linear(features, features),
+                nn.ReLU(),
+                nn.Linear(features, nclasses)
+        else:
+            self.linear_relu_stack = nn.Sequential(
+                nn.Linear(nproperties, features),
+                nn.ReLU(),
+                nn.Linear(features, features),
+                nn.ReLU(),
+                nn.Linear(features, features)
+                nn.ReLU(),
+                nn.Linear(features, nclasses)
+
         self.loss = torch.zeros(epochs, dtype=torch.float32)
-        self.count = torch.zeros(nclasses, dtype=torch.int32)
-        self.correct = torch.zeros(nclasses, dtype=torch.int32)
-        
+        self.count = torch.zeros(nclasses, dtype=torch.uint32)
+        self.correct = torch.zeros(nclasses, dtype=torch.uint32)
+         
     def forward(self, x):
         logits = self.linear_relu_stack(x)
         return logits
@@ -68,7 +83,7 @@ class NeuralNetwork(nn.Module):
             # save the loss for learning curve display
             self.loss[batch] = loss.item()
             
-    def test(self, dataloader, device):
+    def test_(self, dataloader, device):
         self.eval()
         with torch.no_grad():
             for X, y in dataloader:
@@ -101,7 +116,7 @@ class NeuralNetwork(nn.Module):
             print(horzBorder)
             ttlCount += val
             ttlCorrect += self.correct[i]
-        print("|{0:<8s}|{1:<8d}|{2:<8d}|{3:<8d}|".format("Totals", ttlCount, ttlCorrect, ttlCorrect*100//ttlCount))
+        print("|{0:<8s}|{1:<8d}|{2:<8d}|{3:<8d}|".format("Totals", ttlCount, ttlCorrect, round(ttlCorrect/ttlCount*100)))
         print(horzBorder)
         
     def  plotClassDistribution(self, propbegin, propend, maxProp):
@@ -149,8 +164,8 @@ class NeuralNetwork(nn.Module):
                 x += classSpace
         ax.legend()
         ax.set_xlabel('Class Properties')
-        ax.set_ylabel('Property Values')
-        ax.set_title('Property Distribution')
+        ax.set_ylabel('Property Values (raw)')
+        ax.set_title('Class Property Distribution')
         # custom x-ticks for properties
         ax.set_xticks(xtick, np.arange(nproperties)+1)
         plt.show(block=True)  
@@ -172,10 +187,12 @@ class NeuralNetwork(nn.Module):
 def runLinearReluCrossEntropy():
     
     parser = argparse.ArgumentParser(prog='linear_relu_crossentry', description="MLP neural network (ReLU, Cross Entropy Loss) for classification using PyTorch")
-    parser.add_argument('epochs', type=int, choices=[10, 20, 50, 100, 200, 500, 1000])
-    parser.add_argument('batch_size', type=int, choices=[1, 2, 10, 32, 64])
-    parser.add_argument('learning_rate', type=float, choices=[.001, .002, .01, .02])
-    parser.add_argument('momentum', type=float, choices=[.5, .6, .7, .8, .9])
+    parser.add_argument('epochs', type=int, choices=[10, 20, 50, 100, 200, 500, 1000], help="the number of epochs for training")
+    parser.add_argument('batch_size', type=int, choices=[1, 2, 10, 16, 32, 64], help="the batch size for training and testing")
+    parser.add_argument('learning_rate', type=float, choices=[.001, .002, .01, .02], help="learning rate for training")
+    parser.add_argument('momentum', type=float, choices=[.5, .6, .7, .8, .9], help="momentum hyperparameter for training")
+    parser.add_argument('hidden_layers', type=int, choices=[1,2,3], help="number of hidden layers, depth of MLP")
+    parser.add_argument('features', type=int, choices=[10,15,20], help="hidden layer width")
     args = parser.parse_args()
     
     device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
@@ -191,7 +208,11 @@ def runLinearReluCrossEntropy():
     # learning rate to scale the backpropagation error
     learning_rate = args.learning_rate #args.learning_rate
     # momentum
-    momentum = args.momentum
+    momentum = args.momentum    
+    # hidden layers of the MLP
+    hidden_layers = args.hidden_layers   
+    # features of the layers or width
+    features = args.features
 
     maxProp = 256
     maxBegin = maxProp//2
@@ -199,16 +220,28 @@ def runLinearReluCrossEntropy():
     linearReLUcrossEntropyModel = "data\\linearReLUcrossEntropy.pth"
     linearReLUcrossEntropyData = "data\\LinearReLUcrossEntropy.txt"
    
-    # Set class properties bounds tensors
-    propbegin = torch.randint(0, maxBegin, (nclasses, nproperties), dtype = torch.uint8)   
-    propend=torch.randint(1, maxBegin, (nclasses, nproperties), dtype=torch.uint8) + propbegin
+    propbegin = torch.empty((nclasses, nproperties), dtype=torch.uint8)
+    propend = torch.empty((nclasses, nproperties), dtype=torch.uint8)
+    # Set class property bounds if data file doesn't exist, otherwise read in the file
+    if os.path.exists(linearReLUcrossEntropyData):
+        with open(linearReLUcrossEntropyData, mode='r', encoding="utf-8") as fin:
+            cls = 0
+            for line in fin:
+                bounds = line.split(' ')
+                for prop in range(nproperties):
+                    propbegin[cls][prop] = int(bounds[2*prop])
+                    propend[cls][prop] = int(bounds[2*prop+1])
+                cls += 1
+    else:
+        propbegin = torch.randint(0, maxBegin, (nclasses, nproperties), dtype = torch.uint8)   
+        propend=torch.randint(1, maxBegin, (nclasses, nproperties), dtype=torch.uint8) + propbegin
     
     # Input data and the target tensors comprise the samples used to train the ANN
     input_data = torch.empty(nsamples, nproperties, dtype=torch.uint8)
     target = torch.empty(nsamples, 1, dtype=torch.uint8)
     
     # create the ANN
-    model = NeuralNetwork(epochs).to(device)
+    model = NeuralNetwork(epochs, hidden_layers, features).to(device)
     print(f"Model: {model}")    
     
     # Train the model
@@ -227,14 +260,18 @@ def runLinearReluCrossEntropy():
        
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
-            
-    print("Begin training the model.")
+
+    trainbegin = datetime.now()   
+    print(f"Begin training the model: {trainbegin}")
     for t in range(epochs):
         print("*", end='')
         model.train_(dataloader, loss_fn, optimizer, device)
         if (t+1) % 50 == 0:
             print()
-    print("\nDone training")
+    trainend = datetime.now()
+    elapsedtime = trainend-trainbegin
+    print(f"\nDone training: {trainend}")
+    print(f"Elapsed time: {elapsedtime}")
 
     # Display Cross Entropy Loss using matplotlib
     print("Display the Cross Entropy Loss")
@@ -259,13 +296,17 @@ def runLinearReluCrossEntropy():
     dataset = data.TensorDataset(input_data/maxProp, target)
     # Create dataloader from dataset
     dataloader = data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    print("Begin testing the model")
+    testbegin = datetime.now()   
+    print(f"Begin testing the model: {testbegin}")
     for t in range(epochs):
         print("*", end='')
-        model.test(dataloader, device)
+        model.test_(dataloader, device)
         if (t+1) % 50 == 0:
             print()
-    print("\nDone testing.  Test results:")
+    testend = datetime.now()
+    elapsedtime = testend-testbegin
+    print(f"\nDone testing.  {testend}")
+    print(f"Elapsed time: {elapsedtime} Test Results:")
         
     # Tabulate and display the test results: class, count, correct, %correct, totals
     model.displayTestResults()
