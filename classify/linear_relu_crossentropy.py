@@ -28,31 +28,33 @@ class NeuralNetwork(nn.Module):
     def __init__(self, epochs, hidden_layers, features):
         super().__init__()
         self.linear_relu_stack = None
-        if hidden_layers == 1:
-            self.linear_relu_stack = nn.Sequential(
-                nn.Linear(nproperties, features),
-                nn.ReLU(),
-                nn.Linear(features, nclasses)               
-        elif hidden_layers == 2:
-            self.linear_relu_stack = nn.Sequential(
-                nn.Linear(nproperties, features),
-                nn.ReLU(),
-                nn.Linear(features, features),
-                nn.ReLU(),
-                nn.Linear(features, nclasses)
-        else:
-            self.linear_relu_stack = nn.Sequential(
-                nn.Linear(nproperties, features),
-                nn.ReLU(),
-                nn.Linear(features, features),
-                nn.ReLU(),
-                nn.Linear(features, features)
-                nn.ReLU(),
-                nn.Linear(features, nclasses)
-
+        match hidden_layers:
+            case 1:
+                self.linear_relu_stack = nn.Sequential(
+                    nn.Linear(nproperties, features),
+                    nn.ReLU(),
+                    nn.Linear(features, nclasses))
+            case 2:           
+                self.linear_relu_stack = nn.Sequential(
+                    nn.Linear(nproperties, features),
+                    nn.ReLU(),
+                    nn.Linear(features, features),
+                    nn.ReLU(),
+                    nn.Linear(features, nclasses))
+            case 3:
+                self.linear_relu_stack = nn.Sequential(
+                    nn.Linear(nproperties, features),
+                    nn.ReLU(),
+                    nn.Linear(features, features),
+                    nn.ReLU(),
+                    nn.Linear(features, features),
+                    nn.ReLU(),
+                    nn.Linear(features, nclasses))
+            case _:
+                print(f"{hidden_layers} is not supported: choose (1,2,3)")
         self.loss = torch.zeros(epochs, dtype=torch.float32)
-        self.count = torch.zeros(nclasses, dtype=torch.uint32)
-        self.correct = torch.zeros(nclasses, dtype=torch.uint32)
+        self.count = torch.zeros(nclasses, dtype=torch.int64)
+        self.correct = torch.zeros(nclasses, dtype=torch.int64)
          
     def forward(self, x):
         logits = self.linear_relu_stack(x)
@@ -87,15 +89,11 @@ class NeuralNetwork(nn.Module):
         self.eval()
         with torch.no_grad():
             for X, y in dataloader:
-                #print(f"outer={outer}, X={X}, y={y}")
                 X, y = X.to(device), y.to(device)
                 pred = self.forward(X)
-                #print(f"\npred={pred}")
-                #print(f"\ny={y}, size={y.size()}")
                 # loop over y tensor and determine if pred[i].argmax() is equal,
                 # count the number of samples for each class
                 for i,target in enumerate(y):
-                    #print(f"i={i}, target={target}")
                     self.count[target.item()] += 1
                     if pred[i].argmax() == target :
                         self.correct[target.item()] += 1
@@ -116,7 +114,7 @@ class NeuralNetwork(nn.Module):
             print(horzBorder)
             ttlCount += val
             ttlCorrect += self.correct[i]
-        print("|{0:<8s}|{1:<8d}|{2:<8d}|{3:<8d}|".format("Totals", ttlCount, ttlCorrect, round(ttlCorrect/ttlCount*100)))
+        print("|{0:<8s}|{1:<8d}|{2:<8d}|{3:<8d}|".format("Totals", ttlCount, ttlCorrect, round((ttlCorrect/ttlCount*100).item())))
         print(horzBorder)
         
     def  plotClassDistribution(self, propbegin, propend, maxProp):
