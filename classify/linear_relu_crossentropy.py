@@ -23,7 +23,7 @@ from datetime import datetime
 nclasses = 4
 nproperties = 10
 
-# Define ANN model
+# Define ANN model, choose hidden layers and features in each layer
 class NeuralNetwork(nn.Module):
     def __init__(self, epochs, hidden_layers, features):
         super().__init__()
@@ -53,8 +53,8 @@ class NeuralNetwork(nn.Module):
             case _:
                 print(f"{hidden_layers} is not supported: choose (1,2,3)")
         self.loss = torch.zeros(epochs, dtype=torch.float32)
-        self.count = torch.zeros(nclasses, dtype=torch.int64)
-        self.correct = torch.zeros(nclasses, dtype=torch.int64)
+        self.count = torch.zeros(nclasses, dtype=torch.int32)
+        self.correct = torch.zeros(nclasses, dtype=torch.int32)
          
     def forward(self, x):
         logits = self.linear_relu_stack(x)
@@ -95,7 +95,7 @@ class NeuralNetwork(nn.Module):
                 # count the number of samples for each class
                 for i,target in enumerate(y):
                     self.count[target.item()] += 1
-                    if pred[i].argmax() == target :
+                    if pred[i].argmax() == target:
                         self.correct[target.item()] += 1
                         
     def displayTestResults(self):
@@ -185,9 +185,9 @@ class NeuralNetwork(nn.Module):
 def runLinearReluCrossEntropy():
     
     parser = argparse.ArgumentParser(prog='linear_relu_crossentry', description="MLP neural network (ReLU, Cross Entropy Loss) for classification using PyTorch")
-    parser.add_argument('epochs', type=int, choices=[10, 20, 50, 100, 200, 500, 1000], help="the number of epochs for training")
+    parser.add_argument('epochs', type=int, choices=[100, 200, 500, 1000, 2000, 5000, 10000], help="the number of epochs for training and testing")
     parser.add_argument('batch_size', type=int, choices=[1, 2, 10, 16, 32, 64], help="the batch size for training and testing")
-    parser.add_argument('learning_rate', type=float, choices=[.001, .002, .01, .02], help="learning rate for training")
+    parser.add_argument('learning_rate', type=float, choices=[.001, .002, .01, .02], help="learning rate hyperparameter for training")
     parser.add_argument('momentum', type=float, choices=[.5, .6, .7, .8, .9], help="momentum hyperparameter for training")
     parser.add_argument('hidden_layers', type=int, choices=[1,2,3], help="number of hidden layers, depth of MLP")
     parser.add_argument('features', type=int, choices=[10,15,20], help="hidden layer width")
@@ -262,7 +262,7 @@ def runLinearReluCrossEntropy():
     trainbegin = datetime.now()   
     print(f"Begin training the model: {trainbegin}")
     for t in range(epochs):
-        print("*", end='')
+        print("*", end='', flush=True)
         model.train_(dataloader, loss_fn, optimizer, device)
         if (t+1) % 50 == 0:
             print()
@@ -296,11 +296,7 @@ def runLinearReluCrossEntropy():
     dataloader = data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
     testbegin = datetime.now()   
     print(f"Begin testing the model: {testbegin}")
-    for t in range(epochs):
-        print("*", end='')
-        model.test_(dataloader, device)
-        if (t+1) % 50 == 0:
-            print()
+    model.test_(dataloader, device)
     testend = datetime.now()
     elapsedtime = testend-testbegin
     print(f"\nDone testing.  {testend}")
