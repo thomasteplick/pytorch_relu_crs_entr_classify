@@ -10,7 +10,8 @@ After the network is trained, the Cross Entropy Loss per epoch is displayed.  Th
 the neural network.  The number of sample inputs for each class and the number of correct decisions is recorded.  The test results for each class and the totals 
 are shown in a table.  The activation function used for each fully-connected layer is Rectified Linear Unit (ReLU).  The Cross Entropy Loss function is used to determine
 the output error and backpropagation is used to distribute the error to previous-layer weights and biases using the chain rule of Differential Calculus.  PyTorch handles
-all this transparently to the user with tensors and autograd.
+all this transparently to the user with Tensors and Autograd.  The Cross Entropy Loss function uses Softmax to estimate the probabilites of each output class and then
+takes the negative log of these values.  The maximum of these outputs is the predicted class.  Again this is done under the covers; the library handles all the details.
 </p>
 <p>
 The classification results vary depending on the class property distribution.  It is hard to separate classes whose distributions overlap one another.  And the degree to
