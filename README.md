@@ -1,3 +1,29 @@
+<h3>PyTorch Neural Network Classification using Linear Layers, ReLU Activation Functions, Stochastic Gradient Descent (SGD), and Cross Entropy Loss</h3>
+<p>
+This program classifies data from four uniformly-distributed sources.  Each source has ten properties that are uniformly distributed in a sub-interval of (0, 256].
+Input samples are randomly taken from the ten regions for each class and are used as the input to the neural network after normalization.  The normalization simply
+divides the input by 256 which produces a floating point number in [0,1].  The target is the specific class as an 
+integer in (0, 3).  This is termed one-hot vector since only one of the four outputs is one and the rest are zeros; for example, a class 3 target would be [0,0,1,0].
+The user can specify 1, 2, or 3 hidden layers with up to 20 features in each hidden layer.  So the input samples consist of the ten property values and the 
+target integer.  The user can specifiy the number of epochs and the epoch sample size.  The user can also specify the learning rate and momentum hyperparameters.
+After the network is trained, the Cross Entropy Loss per epoch is displayed.  The testing phase follows the training.  A different set of samples is presented to
+the neural network.  The number of sample inputs for each class and the number of correct decisions is recorded.  The test results for each class and the totals 
+are shown in a table.  The activation function used for each fully-connected layer is Rectified Linear Unit (ReLU).  The Cross Entropy Loss function is used to determine
+the output error and backpropagation is used to distribute the error to previous-layer weights and biases using the chain rule of Differential Calculus.  PyTorch handles
+all this transparently to the user with tensors and autograd.
+</p>
+<p>
+The classification results vary depending on the class property distribution.  It is hard to separate classes whose distributions overlap one another.  And the degree to
+which each property can vary (its standard deviation) makes it harder to predict.  When the batch size was increased, some of the classes %correct went to zero.
+When the batch size was decreased to one, those classes %correct increased.  The large batch sizes smooth the learning curve variation but decreases resolution
+and some classes are harder to detect due to their degree of overlap with other classes.  The weights and biases are not corrected during backpropagation for every samples when the batch
+size is greater than one.  This means that the weight and bias corrections are done less frequently.  Increasing the number of batches with the batch size set to one does 
+increase the %correct up to a certain value and then it levels off with no further increase.
+</p>
+<p>
+This program uses PyTorch without CUDA or a GPU, Python 3.13, Matplotlib.Py, and Numpy.
+</p>
+
 <pre>
 C:\Users\Thoma\eclipse-workspace\PyTorchClassify\classify>linear_relu_crossentropy.py -h
 usage: linear_relu_crossentry [-h] {100,200,500,1000,2000,5000,10000} {1,2,10,16,32,64} {0.001,0.002,0.01,0.02} {0.5,0.6,0.7,0.8,0.9} {1,2,3} {10,15,20}
