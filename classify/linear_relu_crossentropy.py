@@ -63,9 +63,9 @@ class NeuralNetwork(nn.Module):
     def createSamples(self, nsamples, input_data, target, propbegin, propend):
         # Create the input data and the target
         for samp in range(nsamples):
+            cls = torch.randint(0, nclasses, (1,1), dtype=torch.uint8)
+            target[samp] = cls.item()
             for prop in range(nproperties):
-                cls = torch.randint(0, nclasses, (1,1), dtype=torch.uint8)
-                target[samp] = cls.item()
                 input_data[samp][prop] = torch.randint(propbegin[cls.item()][prop], 
                     propend[cls.item()][prop], (1,1), dtype=torch.uint8).item()
     
