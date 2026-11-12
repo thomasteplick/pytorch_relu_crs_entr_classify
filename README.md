@@ -46,8 +46,10 @@ positional arguments:
 options:
   -h, --help            show this help message and exit  
 </pre>
+<h4>Class Property Distribution, Uniform, 10 properties, 4 classes</h4>
+<img width="925" height="610" alt="image" src="https://github.com/user-attachments/assets/907f5553-57ba-405e-83f9-53b61208bb32" />
 <pre>
-C:\Users\Thoma\eclipse-workspace\PyTorchClassify\classify>linear_relu_crossentropy.py  1000 1 .001 .5 2 20
+C:\Users\Thoma\eclipse-workspace\PyTorchClassify\classify>linear_relu_crossentropy.py 1000 1 .001 .5 2 20
 Using cpu device
 Model: NeuralNetwork(
   (linear_relu_stack): Sequential(
@@ -59,7 +61,7 @@ Model: NeuralNetwork(
   )
 )
 Display the class distributions
-Begin training the model: 2026-11-01 15:31:03.422034
+Begin training the model: 2026-11-12 16:22:16.935931
 **************************************************
 **************************************************
 **************************************************
@@ -81,32 +83,30 @@ Begin training the model: 2026-11-01 15:31:03.422034
 **************************************************
 **************************************************
 
-Done training: 2026-11-01 15:44:31.053964
-Elapsed time: 0:13:27.631930
+Done training: 2026-11-12 16:35:29.265209
+Elapsed time: 0:13:12.329278
 Display the Cross Entropy Loss
 Saved PyTorch Model State to data\linearReLUcrossEntropy.pth
-Begin testing the model: 2026-11-01 15:46:11.080748
+Begin testing the model: 2026-11-12 16:37:14.262858
 
-Done testing.  2026-11-01 15:46:11.157550
-Elapsed time: 0:00:00.076802 Test Results:
+Done testing.  2026-11-12 16:37:14.338928
+Elapsed time: 0:00:00.076070 Test Results:
 |--------|--------|--------|--------|
 |Class   |Count   |Correct |%Correct|
 |--------|--------|--------|--------|
-|1       |248     |144     |58      |
+|1       |261     |261     |100     |
 |--------|--------|--------|--------|
-|2       |269     |193     |71      |
+|2       |229     |229     |100     |
 |--------|--------|--------|--------|
-|3       |244     |230     |94      |
+|3       |238     |238     |100     |
 |--------|--------|--------|--------|
-|4       |239     |72      |30      |
+|4       |272     |272     |100     |
 |--------|--------|--------|--------|
-|Totals  |1000    |639     |64      |
+|Totals  |1000    |1000    |100     |
 |--------|--------|--------|--------|
 </pre>
-<h4>Class Property Distribution, Uniform, 10 properties, 4 classes</h4>
-<img width="640" height="557" alt="classpropertydistr1000_3_15" src="https://github.com/user-attachments/assets/40e9ca72-a868-4849-9071-a7d017af357a" />
 <h4>Learning Curve, 1000 batches, batch size = 1, learning rate = .001, momentum = 0.5, hidden layers = 2, features = 20</h4>
-<img width="635" height="555" alt="learningcurve1000_2_20" src="https://github.com/user-attachments/assets/ae8ce024-fcc6-4fe5-bd3a-df497513b3a4" />
+<img width="639" height="551" alt="image" src="https://github.com/user-attachments/assets/291d8ecf-29e8-4779-8a1a-3b3b772448c3" />
 <pre>
 C:\Users\Thoma\eclipse-workspace\PyTorchClassify\classify>linear_relu_crossentropy.py 1000 1 .001 .5 3 15
 Using cpu device
@@ -122,7 +122,7 @@ Model: NeuralNetwork(
   )
 )
 Display the class distributions
-Begin training the model: 2026-11-02 09:15:54.189164
+Begin training the model: 2026-11-12 16:39:13.572212
 **************************************************
 **************************************************
 **************************************************
@@ -144,30 +144,28 @@ Begin training the model: 2026-11-02 09:15:54.189164
 **************************************************
 **************************************************
 
-Done training: 2026-11-02 09:28:44.556764
-Elapsed time: 0:12:50.367600
+Done training: 2026-11-12 16:55:11.329350
+Elapsed time: 0:15:57.757138
 Display the Cross Entropy Loss
 Saved PyTorch Model State to data\linearReLUcrossEntropy.pth
-Begin testing the model: 2026-11-02 09:33:48.318506
+Begin testing the model: 2026-11-12 16:56:34.000548
 
-Done testing.  2026-11-02 09:33:48.418498
-Elapsed time: 0:00:00.099992 Test Results:
+Done testing.  2026-11-12 16:56:34.090103
+Elapsed time: 0:00:00.089555 Test Results:
 |--------|--------|--------|--------|
 |Class   |Count   |Correct |%Correct|
 |--------|--------|--------|--------|
-|1       |252     |164     |65      |
+|1       |247     |247     |100     |
 |--------|--------|--------|--------|
-|2       |234     |162     |69      |
+|2       |256     |256     |100     |
 |--------|--------|--------|--------|
-|3       |240     |186     |77      |
+|3       |248     |248     |100     |
 |--------|--------|--------|--------|
-|4       |274     |272     |99      |
+|4       |249     |249     |100     |
 |--------|--------|--------|--------|
-|Totals  |1000    |784     |78      |
-|--------|--------|--------|--------|  
+|Totals  |1000    |1000    |100     |
+|--------|--------|--------|--------|
 </pre>
-<h4>Class Property Distribution, Uniform, 10 properties, 4 classes</h4>
-<img width="891" height="676" alt="image" src="https://github.com/user-attachments/assets/a5132da1-314e-418c-b31a-15348ddafa0b" />
 <h4>Learning Curve, 1000 batches, batch size = 1, learning rate = .001, momentum = 0.5, hidden layers = 3, features = 15</h4>
-<img width="638" height="555" alt="image" src="https://github.com/user-attachments/assets/e233cc56-92a8-42b3-a73e-d284b379e33c" />
+<img width="633" height="550" alt="image" src="https://github.com/user-attachments/assets/359ab244-f8b0-4423-adb7-10218ebbc2c1" />
 
