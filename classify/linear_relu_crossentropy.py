@@ -69,21 +69,25 @@ class NeuralNetwork(nn.Module):
                 input_data[samp][prop] = torch.randint(propbegin[cls.item()][prop], 
                     propend[cls.item()][prop], (1,1), dtype=torch.uint8).item()
     
-    def train_(self, dataloader, loss_fn, optimizer, device):
+    def train_(self, dataloader, loss_fn, optimizer, device, epoch):
         self.train()
+        losssum = 0.0
+        count = 0
         for batch, (X, y) in enumerate(dataloader):
             X, y = X.to(device), y.to(device)
     
             # Compute prediction error
             pred = self.forward(X)
             loss = loss_fn(pred, y.squeeze(1))
-    
             # Backpropagation
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
             # save the loss for learning curve display
-            self.loss[batch] = loss.item()
+            losssum += loss.item()
+            count += 1
+        # save the loss for learning curve display
+        self.loss[epoch] = losssum/count
             
     def test_(self, dataloader, device):
         self.eval()
@@ -263,7 +267,7 @@ def runLinearReluCrossEntropy():
     print(f"Begin training the model: {trainbegin}")
     for t in range(epochs):
         print("*", end='', flush=True)
-        model.train_(dataloader, loss_fn, optimizer, device)
+        model.train_(dataloader, loss_fn, optimizer, device, t)
         if (t+1) % 50 == 0:
             print()
     trainend = datetime.now()
