@@ -47,7 +47,7 @@ options:
   -h, --help            show this help message and exit  
 </pre>
 <h4>Class Property Distribution, Uniform, 10 properties, 4 classes</h4>
-<img width="925" height="610" alt="image" src="https://github.com/user-attachments/assets/907f5553-57ba-405e-83f9-53b61208bb32" />
+<img width="639" height="548" alt="image" src="https://github.com/user-attachments/assets/947663d7-894d-4288-a2b6-1c4d40bf32ac" />
 <pre>
 C:\Users\Thoma\eclipse-workspace\PyTorchClassify\classify>linear_relu_crossentropy.py 1000 1 .001 .5 2 20
 Using cpu device
