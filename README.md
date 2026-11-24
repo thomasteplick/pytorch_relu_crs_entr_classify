@@ -106,7 +106,7 @@ Elapsed time: 0:00:00.081477 Test Results:
 |--------|--------|--------|--------|
 </pre>
 <h4>Learning Curve, 1000 batches, batch size = 1, learning rate = .001, momentum = 0.5, hidden layers = 2, features = 20</h4>
-<img width="634" height="549" alt="image" src="https://github.com/user-attachments/assets/d1956351-b47f-47a6-98c1-10a877e538bf" />
+<img width="635" height="549" alt="image" src="https://github.com/user-attachments/assets/5ed19f71-5d38-40e8-b41c-28c4bca3213b" />
 <pre>
 C:\Users\Thoma\eclipse-workspace\PyTorchClassify\classify>linear_relu_crossentropy.py 1000 1 .001 .5 3 15
 Using cpu device
@@ -122,7 +122,7 @@ Model: NeuralNetwork(
   )
 )
 Display the class distributions
-Begin training the model: 2026-11-12 16:39:13.572212
+Begin training the model: 2026-11-24 12:52:23.767599
 **************************************************
 **************************************************
 **************************************************
@@ -144,28 +144,28 @@ Begin training the model: 2026-11-12 16:39:13.572212
 **************************************************
 **************************************************
 
-Done training: 2026-11-12 16:55:11.329350
-Elapsed time: 0:15:57.757138
+Done training: 2026-11-24 13:05:07.902343
+Elapsed time: 0:12:44.134744
 Display the Cross Entropy Loss
 Saved PyTorch Model State to data\linearReLUcrossEntropy.pth
-Begin testing the model: 2026-11-12 16:56:34.000548
+Begin testing the model: 2026-11-24 14:40:23.711126
 
-Done testing.  2026-11-12 16:56:34.090103
-Elapsed time: 0:00:00.089555 Test Results:
+Done testing.  2026-11-24 14:40:23.801500
+Elapsed time: 0:00:00.090374 Test Results:
 |--------|--------|--------|--------|
 |Class   |Count   |Correct |%Correct|
 |--------|--------|--------|--------|
-|1       |247     |247     |100     |
+|1       |264     |262     |99      |
 |--------|--------|--------|--------|
-|2       |256     |256     |100     |
+|2       |253     |253     |100     |
 |--------|--------|--------|--------|
-|3       |248     |248     |100     |
+|3       |224     |224     |100     |
 |--------|--------|--------|--------|
-|4       |249     |249     |100     |
+|4       |259     |259     |100     |
 |--------|--------|--------|--------|
-|Totals  |1000    |1000    |100     |
-|--------|--------|--------|--------|
+|Totals  |1000    |998     |100     |
+|--------|--------|--------|--------|  
 </pre>
 <h4>Learning Curve, 1000 batches, batch size = 1, learning rate = .001, momentum = 0.5, hidden layers = 3, features = 15</h4>
-<img width="633" height="550" alt="image" src="https://github.com/user-attachments/assets/359ab244-f8b0-4423-adb7-10218ebbc2c1" />
+<img width="635" height="549" alt="image" src="https://github.com/user-attachments/assets/bafbca56-8a1d-4770-8e70-4c098ab55fe9" />
 
