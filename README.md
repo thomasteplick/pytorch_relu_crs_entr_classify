@@ -61,7 +61,7 @@ Model: NeuralNetwork(
   )
 )
 Display the class distributions
-Begin training the model: 2026-11-12 16:22:16.935931
+Begin training the model: 2026-11-24 12:21:21.415830
 **************************************************
 **************************************************
 **************************************************
@@ -83,30 +83,30 @@ Begin training the model: 2026-11-12 16:22:16.935931
 **************************************************
 **************************************************
 
-Done training: 2026-11-12 16:35:29.265209
-Elapsed time: 0:13:12.329278
+Done training: 2026-11-24 12:28:03.285687
+Elapsed time: 0:06:41.869857
 Display the Cross Entropy Loss
 Saved PyTorch Model State to data\linearReLUcrossEntropy.pth
-Begin testing the model: 2026-11-12 16:37:14.262858
+Begin testing the model: 2026-11-24 12:40:03.804171
 
-Done testing.  2026-11-12 16:37:14.338928
-Elapsed time: 0:00:00.076070 Test Results:
+Done testing.  2026-11-24 12:40:03.885648
+Elapsed time: 0:00:00.081477 Test Results:
 |--------|--------|--------|--------|
 |Class   |Count   |Correct |%Correct|
 |--------|--------|--------|--------|
-|1       |261     |261     |100     |
+|1       |234     |234     |100     |
 |--------|--------|--------|--------|
-|2       |229     |229     |100     |
+|2       |269     |269     |100     |
 |--------|--------|--------|--------|
-|3       |238     |238     |100     |
+|3       |254     |254     |100     |
 |--------|--------|--------|--------|
-|4       |272     |272     |100     |
+|4       |243     |243     |100     |
 |--------|--------|--------|--------|
 |Totals  |1000    |1000    |100     |
 |--------|--------|--------|--------|
 </pre>
 <h4>Learning Curve, 1000 batches, batch size = 1, learning rate = .001, momentum = 0.5, hidden layers = 2, features = 20</h4>
-<img width="639" height="551" alt="image" src="https://github.com/user-attachments/assets/291d8ecf-29e8-4779-8a1a-3b3b772448c3" />
+<img width="634" height="549" alt="image" src="https://github.com/user-attachments/assets/d1956351-b47f-47a6-98c1-10a877e538bf" />
 <pre>
 C:\Users\Thoma\eclipse-workspace\PyTorchClassify\classify>linear_relu_crossentropy.py 1000 1 .001 .5 3 15
 Using cpu device
